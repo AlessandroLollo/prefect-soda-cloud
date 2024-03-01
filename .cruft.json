@@ -1,0 +1,20 @@
+{
+  "template": "https://github.com/PrefectHQ/prefect-collection-template",
+  "commit": "008e0473a06186c9608d26f6288810f46d4509e2",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "full_name": "Alessandro Lollo",
+      "email": "alessandro.lollo@gmail.com",
+      "github_organization": "AlessandroLollo",
+      "collection_name": "prefect-soda-cloud",
+      "collection_slug": "prefect_soda_cloud",
+      "collection_short_description": "Collection of Prefect tasks to interact with Soda Cloud APIs.",
+      "_copy_without_render": [
+        ".github/workflows/*.yml"
+      ],
+      "_template": "https://github.com/PrefectHQ/prefect-collection-template"
+    }
+  },
+  "directory": null
+}
