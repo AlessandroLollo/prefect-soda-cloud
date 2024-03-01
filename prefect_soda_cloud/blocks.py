@@ -1,7 +1,7 @@
 """This is an example blocks module"""
 
 from prefect.blocks.core import Block
-from pydantic.v1 import Field
+from pydantic import Field
 
 
 class SodacloudBlock(Block):
