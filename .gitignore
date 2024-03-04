@@ -136,3 +136,5 @@ dmypy.json
 
 # Jupyter notebook
 *.ipynb
+
+test_client.py
