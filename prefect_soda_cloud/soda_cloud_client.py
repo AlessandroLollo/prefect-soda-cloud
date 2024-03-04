@@ -1,9 +1,21 @@
+"""
+A client to interact with Soda Cloud APIs.
+"""
+
 import base64
 from datetime import datetime
+from logging import Logger
 from time import sleep
 from typing import List, Optional
+from urllib.parse import urljoin
 
 from requests import Session
+
+from prefect_soda_cloud.exceptions import (
+    GetScanLogsException,
+    GetScanStatusException,
+    TriggerScanException,
+)
 
 
 class SodaCloudClient:
@@ -11,23 +23,52 @@ class SodaCloudClient:
     __TRIGGER_SCAN_V1_ENDPOINT = "api/v1/scans"
     __GET_SCAN_STATUS_V1_ENDPOINT = "api/v1/scans/{scanId}"
     __GET_SCAN_LOGS_V1_ENDPOINT = "api/v1/scans/{scanId}/logs"
+    __DEFAULT_WAIT_SECS_BETWEEN_API_CALLS = 5
 
-    def __init__(self, api_base_url: str, username: str, password: str) -> None:
+    def __init__(
+        self,
+        api_base_url: str,
+        username: str,
+        password: str,
+        logger: Logger,
+        wait_secs_between_api_calls: Optional[int],
+    ) -> None:
         """
         Create a `SodaCloudClient` object that can be used to interact
         with Soda Cloud APIs.
         """
         self.__api_base_url = api_base_url
-        self.__username = username
-        self.__password = password
-        self.__session = self.__get_session()
+        self.__secret = SodaCloudClient.__get_secret(
+            username=username, password=password
+        )
+        self.__logger = logger
+        self.__wait_secs_between_api_calls = (
+            wait_secs_between_api_calls
+            if wait_secs_between_api_calls and wait_secs_between_api_calls > 0
+            else self.__DEFAULT_WAIT_SECS_BETWEEN_API_CALLS
+        )
 
-    def __get_auth_header(self) -> str:
+    @property
+    def api_base_url(self) -> str:
+        """
+        Return API Base URL
+        """
+        return self.__api_base_url
+
+    @property
+    def wait_secs_between_api_calls(self) -> int:
+        """
+        Return wait time seconds between API calls
+        """
+        return self.__wait_secs_between_api_calls
+
+    @staticmethod
+    def __get_secret(username: str, password: str) -> str:
         """
         Return the value of the authorization header computed
         using the username and password
         """
-        secret = f"{self.__username}:{self.__password}".encode("utf-8")
+        secret = f"{username}:{password}".encode("utf-8")
         return base64.b64encode(secret).decode("utf-8")
 
     def __get_session(self) -> Session:
@@ -35,27 +76,34 @@ class SodaCloudClient:
         Create a `Session` object to interact with Soda Cloud APIs.
         """
         session = Session()
-        auth_header = self.__get_auth_header()
         session.headers = {
             "Content-Type": "application/x-www-form-urlencoded",
             "Accept": "application/json",
-            "Authorization": f"Basic {auth_header}",
+            "Authorization": f"Basic {self.__secret}",
         }
         return session
+
+    def __get_api_url(self, endpoint: str) -> str:
+        """
+        Return the full API URL by joining the base URL
+        and the given endpoint.
+        """
+        return urljoin(self.api_base_url, endpoint)
 
     def trigger_scan(self, scan_name: str, data_timestamp: Optional[datetime]) -> str:
         """
         Trigger a Soda Scan given its name and return the corresponding Scan ID.
-        Uses [Trigger Scan](https://docs.soda.io/api-docs/public-cloud-api-v1.html#/operations/POST/api/v1/scans)
+        Uses [Trigger Scan](https://docs.soda.io/api-docs/public-cloud-api-v1.html#/operations/POST/api/v1/scans) # noqa
         """
-        url = f"{self.__api_base_url}/{self.__TRIGGER_SCAN_V1_ENDPOINT}"
+        url = self.__get_api_url(endpoint=self.__TRIGGER_SCAN_V1_ENDPOINT)
         payload = {"scanDefinition": scan_name}
         if data_timestamp:
             payload["dataTimestamp"] = data_timestamp.isoformat()
 
-        with self.__session.post(url=url, data=payload) as response:
+        session = self.__get_session()
+        with session.post(url=url, data=payload) as response:
             if response.status_code != 201:
-                raise Exception(response.json())
+                raise TriggerScanException(response.json())
 
         return response.headers["X-Soda-Scan-Id"]
 
@@ -63,50 +111,55 @@ class SodaCloudClient:
         """
         Return dict that contains information about the run status
         of the scan given the corresponding Scan ID.
-        Uses [Get Scan Status](https://docs.soda.io/api-docs/public-cloud-api-v1.html#/operations/GET/api/v1/scans/{scanId})
+        Uses [Get Scan Status](https://docs.soda.io/api-docs/public-cloud-api-v1.html#/operations/GET/api/v1/scans/{scanId}) # noqa
         """
         get_scan_status_endpoint = self.__GET_SCAN_STATUS_V1_ENDPOINT.format(
             scanId=scan_id
         )
-        url = f"{self.__api_base_url}/{get_scan_status_endpoint}"
+        url = self.__get_api_url(endpoint=get_scan_status_endpoint)
 
-        with self.__session.get(url=url) as response:
+        session = self.__get_session()
+        with session.get(url=url) as response:
             if response.status_code != 200:
-                raise Exception(response.json())
+                raise GetScanStatusException(response.json())
 
         return response.json()
 
     def get_scan_logs(self, scan_id: str) -> List[dict]:
         """
-        TODO
+        Return the list of log messages generated by a scan
+        give the Scan ID.
+        Uses [Get Scan Logs](https://docs.soda.io/api-docs/public-cloud-api-v1.html#/operations/GET/api/v1/scans/{scanId}/logs) # noqa
         """
         get_scan_logs_endpoint = self.__GET_SCAN_LOGS_V1_ENDPOINT.format(scanId=scan_id)
-        url = f"{self.__api_base_url}/{get_scan_logs_endpoint}"
+        url = self.__get_api_url(endpoint=get_scan_logs_endpoint)
+        is_scan_ended = False
 
-        is_scan_complete = False
-
-        while not is_scan_complete:
+        # Ensure the scan execution is finished
+        while not is_scan_ended:
             scan_status = self.get_scan_status(scan_id=scan_id)
             if "ended" not in scan_status:
-                print("Waiting for scan to finish...")
-                sleep(5)
+                self.__logger.info("Waiting for scan to finish execution...")
+                sleep(self.__wait_secs_between_api_calls)
             else:
-                is_scan_complete = True
+                is_scan_ended = True
 
-        content = []
+        logs = []
         is_last_log_message = False
 
+        session = self.__get_session()
+        # Grab all log messages
         while not is_last_log_message:
-            with self.__session.get(url=url) as response:
+            with session.get(url=url) as response:
                 if response.status_code != 200:
-                    raise Exception(response.json())
+                    raise GetScanLogsException(response.json())
 
             data = response.json()
-            content.extend(data["content"])
+            logs.extend(data["content"])
             is_last_log_message = data["last"]
 
             if not is_last_log_message:
-                print("Waiting for more logs...")
-                sleep(5)
+                self.__logger.info("Waiting for more logs...")
+                sleep(self.__wait_secs_between_api_calls)
 
-        return content
+        return logs

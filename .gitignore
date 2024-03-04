@@ -137,4 +137,4 @@ dmypy.json
 # Jupyter notebook
 *.ipynb
 
-prefect_soda_cloud/test_client.py
+test_client.py
