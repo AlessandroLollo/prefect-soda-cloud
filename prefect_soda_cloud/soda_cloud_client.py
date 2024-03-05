@@ -111,7 +111,7 @@ class SodaCloudClient:
 
         return response.headers["X-Soda-Scan-Id"]
 
-    def get_scan_status(self, scan_id: str) -> dict:
+    def get_scan_status(self, scan_id: str, wait_for_scan_end: bool = False) -> dict:
         """
         Return dict that contains information about the run status
         of the scan given the corresponding Scan ID.
@@ -123,11 +123,23 @@ class SodaCloudClient:
         url = self.__get_api_url(endpoint=get_scan_status_endpoint)
 
         session = self.__get_session()
-        with session.get(url=url) as response:
-            if response.status_code != 200:
-                raise GetScanStatusException(response.json())
 
-        return response.json()
+        while True:
+            with session.get(url=url) as response:
+                if response.status_code != 200:
+                    raise GetScanStatusException(response.json())
+            scan_status = response.json()
+            if not wait_for_scan_end or SodaCloudClient.__is_scan_ended(
+                scan_status=scan_status
+            ):
+                return scan_status
+
+    @staticmethod
+    def __is_scan_ended(scan_status: dict) -> bool:
+        """
+        TODO
+        """
+        return "ended" in scan_status
 
     def get_scan_logs(self, scan_id: str) -> List[dict]:
         """
@@ -137,16 +149,9 @@ class SodaCloudClient:
         """
         get_scan_logs_endpoint = self.__GET_SCAN_LOGS_V1_ENDPOINT.format(scanId=scan_id)
         url = self.__get_api_url(endpoint=get_scan_logs_endpoint)
-        is_scan_ended = False
 
         # Ensure the scan execution is finished
-        while not is_scan_ended:
-            scan_status = self.get_scan_status(scan_id=scan_id)
-            if "ended" not in scan_status:
-                self.__logger.info("Waiting for scan to finish execution...")
-                sleep(self.__wait_secs_between_api_calls)
-            else:
-                is_scan_ended = True
+        self.get_scan_status(scan_id=scan_id, wait_for_scan_end=True)
 
         logs = []
         is_last_log_message = False
