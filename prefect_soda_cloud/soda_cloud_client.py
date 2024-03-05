@@ -19,6 +19,10 @@ from prefect_soda_cloud.exceptions import (
 
 
 class SodaCloudClient:
+    """
+    A simple client that can be used to interact with
+    Soda Cloud APIs.
+    """
 
     __TRIGGER_SCAN_V1_ENDPOINT = "api/v1/scans"
     __GET_SCAN_STATUS_V1_ENDPOINT = "api/v1/scans/{scanId}"
