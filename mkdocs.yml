@@ -76,8 +76,5 @@ nav:
     - Blocks Catalog: blocks_catalog.md
     - Examples Catalog: examples_catalog.md
     - Credentials & Auth config: auth_config.md
-    - API Reference:
-        - Tasks: tasks.md
-        - Flows: flows.md
 
 
