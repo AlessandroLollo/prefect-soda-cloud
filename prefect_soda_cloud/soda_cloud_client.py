@@ -106,7 +106,9 @@ class SodaCloudClient:
 
         session = self.__get_session()
         with session.post(url=url, data=payload) as response:
-            if response.status_code != 201:
+            try:
+                response.raise_for_status()
+            except Exception:
                 raise TriggerScanException(response.json())
 
         return response.headers["X-Soda-Scan-Id"]
@@ -121,18 +123,22 @@ class SodaCloudClient:
             scanId=scan_id
         )
         url = self.__get_api_url(endpoint=get_scan_status_endpoint)
-
         session = self.__get_session()
 
         while True:
             with session.get(url=url) as response:
-                if response.status_code != 200:
+                try:
+                    response.raise_for_status()
+                except Exception:
                     raise GetScanStatusException(response.json())
             scan_status = response.json()
             if not wait_for_scan_end or SodaCloudClient.__is_scan_ended(
                 scan_status=scan_status
             ):
                 return scan_status
+            else:
+                self.__logger.info("Waiting for scan to finish execution...")
+                sleep(self.__wait_secs_between_api_calls)
 
     @staticmethod
     def __is_scan_ended(scan_status: dict) -> bool:
@@ -157,10 +163,13 @@ class SodaCloudClient:
         is_last_log_message = False
 
         session = self.__get_session()
+
         # Grab all log messages
         while not is_last_log_message:
             with session.get(url=url) as response:
-                if response.status_code != 200:
+                try:
+                    response.raise_for_status()
+                except Exception:
                     raise GetScanLogsException(response.json())
 
             data = response.json()
