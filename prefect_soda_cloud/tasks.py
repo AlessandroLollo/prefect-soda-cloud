@@ -11,7 +11,6 @@ def trigger_scan(
     scan_name: str,
     soda_cloud_auth_config: SodaCloudAuthConfig,
     data_timestamp: Optional[datetime] = None,
-    wait_for_scan_end: bool = False,
 ) -> str:
     """
     Trigger a scan given its name.
@@ -19,7 +18,6 @@ def trigger_scan(
     Args:
         scan_name: The name of the scan to trigger.
         soda_cloud_auth_config: The auth configuration to use to trigger the scan.
-        wait_for_scan_end: Whether to wait for the scan execution to finish or not.
 
     Returns:
         The Scan identifier.
@@ -28,11 +26,6 @@ def trigger_scan(
     scan_id = soda_cloud_client.trigger_scan(
         scan_name=scan_name, data_timestamp=data_timestamp
     )
-
-    if wait_for_scan_end:
-        soda_cloud_client.get_scan_status(
-            scan_id=scan_id, wait_for_scan_end=wait_for_scan_end
-        )
 
     return scan_id
 
