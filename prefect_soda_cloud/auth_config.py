@@ -1,5 +1,5 @@
 """
-This block can be used to store credentials
+This blocks can be used to store credentials
 that will be used to authenticate to Soda Cloud APIs.
 """
 
@@ -17,7 +17,8 @@ class SodaCloudCredentials(Block):
     This block contains sensitive informations
     that will be used during the authentication flow
     with Soda Cloud.
-    Please refer to [Soda Cloud docs](https://docs.soda.io/api-docs/public-cloud-api-v1.html#/operations/GET/api/v1/test-login) # noqa
+    Please refer to
+    [Soda Cloud docs](https://docs.soda.io/api-docs/public-cloud-api-v1.html#/operations/GET/api/v1/test-login)
     for more information about authentication.
 
     Attributes:
@@ -26,14 +27,14 @@ class SodaCloudCredentials(Block):
 
     Example:
     ```python
-    from prefect_soda_cloud.auth_config import SodaCloudCredentials
+    from prefect_soda_cloud import SodaCloudCredentials
 
     creds = SodaCloudCredentials(
         user_or_api_key_id="user",
         pwd_or_api_key_secret="pwd"
     )
     ```
-    """
+    """  # noqa: E501
 
     _block_type_name = "Soda Cloud Credentials"
     _logo_url = "https://avatars.githubusercontent.com/u/45313710?s=200&v=4"  # noqa
@@ -64,7 +65,7 @@ class SodaCloudAuthConfig(Block):
 
     Example:
     ```python
-    from prefect_soda_cloud.auth_config import (
+    from prefect_soda_cloud import (
         SodaCloudAuthConfig,
         SodaCloudCredentials
     )

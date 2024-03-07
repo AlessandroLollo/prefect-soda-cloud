@@ -1,3 +1,7 @@
+"""
+Collection of tasks to interact with Soda Cloud
+"""
+
 from datetime import datetime
 from typing import List, Optional
 
@@ -21,6 +25,27 @@ def trigger_scan(
 
     Returns:
         The Scan identifier.
+
+    Example:
+    ```python
+    from prefect_soda_cloud import SodaCloudAuthConfig, SodaCloudCredentials
+    from prefect_soda_cloud.tasks import trigger_scan
+
+    creds = SodaCloudCredentials(
+        user_or_api_key_id="the_user",
+        pwd_or_api_key_secret="the_password"
+    )
+
+    auth_config = SodaCloudAuthConfig(
+        api_base_url="https://cloud.soda.io",
+        creds=creds
+    )
+
+    scan_id = trigger_scan(
+        soda_cloud_auth_config=auth_config,
+        data_timestamp=None
+    )
+    ```
     """
     soda_cloud_client = soda_cloud_auth_config.get_client(logger=get_run_logger())
     scan_id = soda_cloud_client.trigger_scan(
