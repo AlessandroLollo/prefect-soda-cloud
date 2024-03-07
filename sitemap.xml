@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://AlessandroLollo.github.io/prefect-soda-cloud/</loc>
+         <lastmod>2024-03-07</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://AlessandroLollo.github.io/prefect-soda-cloud/auth_config/</loc>
+         <lastmod>2024-03-07</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://AlessandroLollo.github.io/prefect-soda-cloud/blocks_catalog/</loc>
+         <lastmod>2024-03-07</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://AlessandroLollo.github.io/prefect-soda-cloud/examples_catalog/</loc>
+         <lastmod>2024-03-07</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://AlessandroLollo.github.io/prefect-soda-cloud/tasks/</loc>
+         <lastmod>2024-03-07</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+</urlset>
