@@ -1,5 +1,5 @@
 """
-This block can be used to store credentials
+This blocks can be used to store credentials
 that will be used to authenticate to Soda Cloud APIs.
 """
 

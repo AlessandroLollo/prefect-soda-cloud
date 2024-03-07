@@ -53,28 +53,32 @@ We recommend using a Python virtual environment manager such as pipenv, conda or
 
 These tasks are designed to work with Prefect 2.0. For more information about how to use Prefect, please refer to the [Prefect documentation](https://docs.prefect.io/).
 
-<!--- ### Saving credentials to block
+### Examples
+<!--- ### Saving credentials to block -->
 
 Note, to use the `load` method on Blocks, you must already have a block document [saved through code](https://docs.prefect.io/concepts/blocks/#saving-blocks) or [saved through the UI](https://docs.prefect.io/ui/blocks/).
 
-Below is a walkthrough on saving block documents through code.
+Below is an example on saving block documents through code.
 
-1. Head over to <SERVICE_URL>.
-2. Login to your <SERVICE> account.
-3. Click "+ Create new secret key".
-4. Copy the generated API key.
-5. Create a short script, replacing the placeholders (or do so in the UI).
+```python title="save_soda_cloud_credentials_as_block.py"
+from prefect_soda_cloud import SodaCloudCredentials
 
-```python
-from prefect_soda_cloud import Block
-Block(api_key="API_KEY_PLACEHOLDER").save("BLOCK_NAME_PLACEHOLDER")
+SodaCloudCredentials(
+    user_or_api_key_id="<username or API key ID>",
+    pwd_or_api_key_secret="<password or API key secret>"
+).save("your_block_fancy_name")
 ```
 
-Congrats! You can now easily load the saved block, which holds your credentials:
+```python title="save_soda_cloud_auth_config_as_block.py"
+from prefect_soda_cloud import SodaCloudAuthConfig, SodaCloudCredentials
 
-```python
-from prefect_soda_cloud import Block
-Block.load("BLOCK_NAME_PLACEHOLDER")
+# Assuming you have already registered your Soda Cloud credentials in a block, you can load it
+creds = SodaCloudCredentials.load("your_block_fancy_name")
+
+SodaCloudAuthConfig(
+    api_base_url="https://cloud.soda.io",
+    creds=creds
+).save("another_fancy_name")
 ```
 
 !!! info "Registering blocks"
@@ -87,9 +91,9 @@ Block.load("BLOCK_NAME_PLACEHOLDER")
     prefect block register -m prefect_soda_cloud
     ```
 
-A list of available blocks in `prefect-soda-cloud` and their setup instructions can be found [here](https://AlessandroLollo.github.io/prefect-soda-cloud/blocks_catalog).
+A list of available blocks in `prefect-soda-cloud` and their setup instructions can be found [here](./auth_config).
 
---->
+<!-- --->
 
 ### Feedback
 
