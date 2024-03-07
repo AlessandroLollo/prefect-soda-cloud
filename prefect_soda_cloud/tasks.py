@@ -1,3 +1,7 @@
+"""
+Collection of tasks to interact with Soda Cloud
+"""
+
 from datetime import datetime
 from typing import List, Optional
 
