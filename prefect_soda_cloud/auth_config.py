@@ -22,7 +22,7 @@ class SodaCloudCredentials(Block):
 
     Attributes:
         user_or_api_key_id: Username or API Key ID.
-        pwd_or_api_key_id: Password or API Key Secret.
+        pwd_or_api_key_secret: Password or API Key Secret.
 
     Example:
     ```python
